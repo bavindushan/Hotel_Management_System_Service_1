@@ -1,0 +1,255 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model customer {
+  id            Int           @id @default(autoincrement())
+  full_name     String        @db.VarChar(100)
+  email         String        @unique(map: "email") @db.VarChar(100)
+  phone         String?       @db.VarChar(20)
+  address       String?       @db.Text
+  password_hash String?       @db.VarChar(255)
+  created_at    DateTime?     @default(now()) @db.Timestamp(0)
+  reservation   reservation[]
+}
+
+model room {
+  id                  Int                   @id @default(autoincrement())
+  branch_id           Int?
+  room_number         String                @db.VarChar(20)
+  room_type_id        Int?
+  status              room_status
+  price_per_night     Decimal?              @db.Decimal(10, 2)
+  blockedbookingrooms blockedbookingrooms[]
+  bookedrooms         bookedrooms[]
+  branch              branch?               @relation(fields: [branch_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "room_ibfk_1")
+  roomtype            roomtype?             @relation(fields: [room_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "room_ibfk_2")
+
+  @@index([branch_id], map: "branch_id")
+  @@index([room_type_id], map: "room_type_id")
+}
+
+model roomtype {
+  id             Int              @id @default(autoincrement())
+  type_name      String           @db.VarChar(50)
+  description    String?          @db.Text
+  base_price     Decimal          @db.Decimal(10, 2)
+  blockedbooking blockedbooking[]
+  room           room[]
+}
+
+model billing {
+  id             Int             @id @default(autoincrement())
+  reservation_id Int?            @unique(map: "reservation_id")
+  total_amount   Decimal?        @db.Decimal(10, 2)
+  tax_amount     Decimal?        @db.Decimal(10, 2)
+  other_charges  Decimal?        @db.Decimal(10, 2)
+  billing_date   DateTime?       @db.Date
+  status         billing_status?
+  reservation    reservation?    @relation(fields: [reservation_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "billing_ibfk_1")
+}
+
+model blockedbooking {
+  id                  Int                   @id @default(autoincrement())
+  company_id          Int?
+  start_date          DateTime?             @db.Date
+  end_date            DateTime?             @db.Date
+  number_of_rooms     Int?
+  room_type_id        Int?
+  branch_id           Int?
+  travelcompany       travelcompany?        @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "blockedbooking_ibfk_1")
+  roomtype            roomtype?             @relation(fields: [room_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "blockedbooking_ibfk_2")
+  branch              branch?               @relation(fields: [branch_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "blockedbooking_ibfk_3")
+  blockedbookingrooms blockedbookingrooms[]
+  travelcompanybill   travelcompanybill?
+
+  @@index([branch_id], map: "branch_id")
+  @@index([company_id], map: "company_id")
+  @@index([room_type_id], map: "room_type_id")
+}
+
+model blockedbookingrooms {
+  id                 Int             @id @default(autoincrement())
+  blocked_booking_id Int?
+  room_id            Int?
+  blockedbooking     blockedbooking? @relation(fields: [blocked_booking_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "blockedbookingrooms_ibfk_1")
+  room               room?           @relation(fields: [room_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "blockedbookingrooms_ibfk_2")
+
+  @@index([blocked_booking_id], map: "blocked_booking_id")
+  @@index([room_id], map: "room_id")
+}
+
+model bookedrooms {
+  id             Int          @id @default(autoincrement())
+  reservation_id Int?
+  room_id        Int?
+  reservation    reservation? @relation(fields: [reservation_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "bookedrooms_ibfk_1")
+  room           room?        @relation(fields: [room_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "bookedrooms_ibfk_2")
+
+  @@index([reservation_id], map: "reservation_id")
+  @@index([room_id], map: "room_id")
+}
+
+model branch {
+  id             Int              @id @default(autoincrement())
+  name           String           @db.VarChar(100)
+  address        String           @db.Text
+  email          String?          @db.VarChar(100)
+  tel_no         String?          @db.VarChar(20)
+  blockedbooking blockedbooking[]
+  reservation    reservation[]
+  room           room[]
+  user           user[]
+}
+
+model optionalservice {
+  id                 Int                  @id @default(autoincrement())
+  service_name       String?              @db.VarChar(100)
+  description        String?              @db.Text
+  service_charge     Decimal?             @db.Decimal(10, 2)
+  reservationservice reservationservice[]
+}
+
+model payment {
+  id             Int                     @id @default(autoincrement())
+  reservation_id Int?
+  payment_method payment_payment_method?
+  amount_paid    Decimal?                @db.Decimal(10, 2)
+  paid_at        DateTime?               @default(now()) @db.Timestamp(0)
+  reservation    reservation?            @relation(fields: [reservation_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "payment_ibfk_1")
+
+  @@index([reservation_id], map: "reservation_id")
+}
+
+model report {
+  id                Int       @id @default(autoincrement())
+  generated_user_id Int?
+  report_type       String?   @db.VarChar(50)
+  generated_on      DateTime? @default(now()) @db.Timestamp(0)
+  details           String?   @db.Text
+  user              user?     @relation(fields: [generated_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "report_ibfk_1")
+
+  @@index([generated_user_id], map: "generated_user_id")
+}
+
+model reservation {
+  id                        Int                            @id @default(autoincrement())
+  branch_id                 Int?
+  customer_id               Int?
+  check_in_date             DateTime                       @db.Date
+  check_out_date            DateTime                       @db.Date
+  number_of_occupants       Int?
+  number_of_rooms           Int?
+  payment_status            reservation_payment_status
+  reservation_status        reservation_reservation_status
+  created_at                DateTime?                      @default(now()) @db.Timestamp(0)
+  billing                   billing?
+  bookedrooms               bookedrooms[]
+  payment                   payment[]
+  branch                    branch?                        @relation(fields: [branch_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reservation_ibfk_1")
+  customer                  customer?                      @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reservation_ibfk_2")
+  reservationpaymentdetails reservationpaymentdetails?
+  reservationservice        reservationservice[]
+
+  @@index([branch_id], map: "branch_id")
+  @@index([customer_id], map: "customer_id")
+}
+
+model reservationpaymentdetails {
+  id             Int          @id @default(autoincrement())
+  reservation_id Int?         @unique(map: "reservation_id")
+  card_type      String?      @db.VarChar(20)
+  card_number    String?      @db.VarChar(100)
+  card_exp_month String?      @db.Char(2)
+  card_exp_year  String?      @db.Char(4)
+  cvn_code       String?      @db.VarChar(10)
+  reservation    reservation? @relation(fields: [reservation_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reservationpaymentdetails_ibfk_1")
+}
+
+model reservationservice {
+  reservation_id  Int
+  service_id      Int
+  price           Decimal?        @db.Decimal(10, 2)
+  qty             Int?
+  reservation     reservation     @relation(fields: [reservation_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reservationservice_ibfk_1")
+  optionalservice optionalservice @relation(fields: [service_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reservationservice_ibfk_2")
+
+  @@id([reservation_id, service_id])
+  @@index([service_id], map: "service_id")
+}
+
+model role {
+  role_id     Int     @id @default(autoincrement())
+  role_name   String  @db.VarChar(50)
+  description String? @db.Text
+  user        user[]
+}
+
+model travelcompany {
+  id             Int              @id @default(autoincrement())
+  company_name   String?          @db.VarChar(100)
+  contact_person String?          @db.VarChar(100)
+  email          String?          @db.VarChar(100)
+  phone          String?          @db.VarChar(20)
+  discount_rate  Decimal?         @db.Decimal(5, 2)
+  blockedbooking blockedbooking[]
+}
+
+model travelcompanybill {
+  id                 Int             @id @default(autoincrement())
+  blocked_booking_id Int?            @unique(map: "blocked_booking_id")
+  billing_date       DateTime?       @db.Date
+  other_charges      Decimal?        @db.Decimal(10, 2)
+  tax_amount         Decimal?        @db.Decimal(10, 2)
+  total_amount       Decimal?        @db.Decimal(10, 2)
+  blockedbooking     blockedbooking? @relation(fields: [blocked_booking_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "travelcompanybill_ibfk_1")
+}
+
+model user {
+  id            Int       @id @default(autoincrement())
+  branch_id     Int?
+  username      String    @db.VarChar(50)
+  email         String    @unique(map: "email") @db.VarChar(100)
+  password_hash String    @db.VarChar(255)
+  role_id       Int?
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  report        report[]
+  branch        branch?   @relation(fields: [branch_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_ibfk_1")
+  role          role?     @relation(fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction, map: "user_ibfk_2")
+
+  @@index([branch_id], map: "branch_id")
+  @@index([role_id], map: "role_id")
+}
+
+enum room_status {
+  Available
+  Occupied
+  Maintenance
+}
+
+enum payment_payment_method {
+  Cash
+  Credit_Card @map("Credit Card")
+}
+
+enum billing_status {
+  Paid
+  Unpaid
+}
+
+enum reservation_payment_status {
+  Pending
+  Paid
+}
+
+enum reservation_reservation_status {
+  Confirmed
+  Cancelled
+  No_show   @map("No-show")
+  Complete
+}

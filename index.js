@@ -1,13 +1,9 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const swaggerUi = require('swagger-ui-express'); // ✅ required for Swagger UI
-const swaggerFile = require('./swagger-output.json'); // ✅ generated Swagger JSON
-
+const setupSwaggerDocs = require('./src/config/swagger');
 const Router = require('./src/routes/route');
-const AppDataSource = require('./src/config/db');
 const errorMiddleware = require('./src/middlewares/errorMiddleware');
-
-dotenv.config();
+require('dotenv').config();
 
 const app = express();
 app.use(express.json());
@@ -16,21 +12,20 @@ app.use(express.json());
 app.use('/api', Router);
 
 // Swagger docs
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
+setupSwaggerDocs(app);
 
 // Error handling
 app.use(errorMiddleware);
 
-// Connect to DB and start server
-AppDataSource.initialize()
-    .then(() => {
-        console.log('Database connected successfully!');
-        const PORT = process.env.PORT || 5000;
-        app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
-            console.log(`Swagger docs available at: http://localhost:${PORT}/api-docs`);
-        });
-    })
-    .catch((err) => {
-        console.error('Error during DB connection:', err);
-    });
+// Load node-cron jobs for cancel unpaid reservations
+require('./src/jobs/cancelUnpaidReservations.job');
+// Load node-cron jobs for update completed reservations
+require('./src/jobs/updateCompletedReservations.job');
+
+
+// Start the server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Swagger docs available at: http://localhost:${PORT}/api-docs`);
+});
