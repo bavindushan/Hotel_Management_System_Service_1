@@ -26,14 +26,25 @@ const signUp = async (req, res) => {
         throw new ValidationError('Discount rate must be between 0 and 100');
     }
 
-    const result = await travelCompanyService.registerTravelCompany({ 
-        company_name, contact_person, email, phone, discount_rate, password 
+    const result = await travelCompanyService.registerTravelCompany({
+        company_name, contact_person, email, phone, discount_rate, password
     });
     res.status(result.statusCode).json(result);
 };
 
+const signIn = async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        throw new ValidationError('Email and password are required');
+    }
+
+    const result = await travelCompanyService.signInTravelCompany({email, password});
+    res.status(result.statusCode || 200).json(result);
+};
 
 
 module.exports = {
     signUp,
+    signIn,
 };

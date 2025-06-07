@@ -86,7 +86,60 @@ const authMiddleware = require('../middlewares/authMiddleware');
  */
 router.post('/sign-up', asyncHandler(travelCompanyController.signUp));
 
-
+/**
+ * @swagger
+ * /travel-company/signin:
+ *   post:
+ *     summary: Travel company sign in
+ *     tags: [TravelCompany]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: contact@globaltravels.com
+ *               password:
+ *                 type: string
+ *                 example: yourpassword123
+ *     responses:
+ *       200:
+ *         description: Sign-in successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     token:
+ *                       type: string
+ *                     company:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                         email:
+ *                           type: string
+ *                         company_name:
+ *                           type: string
+ *       400:
+ *         description: Bad request or validation error
+ *       401:
+ *         description: Unauthorized - invalid email or password
+ */
+router.post('/sign-in', asyncHandler(travelCompanyController.signIn));
 
 module.exports = router;
 

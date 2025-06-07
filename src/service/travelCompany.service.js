@@ -1,8 +1,9 @@
 const bcrypt = require('bcrypt');
+const generateToken = require("../utils/generateToken");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-const { ValidationError, BadRequestError } = require('../utils/AppError');
+const { ValidationError, BadRequestError, UnauthorizedError } = require('../utils/AppError');
 const { isValidEmail, isValidPhoneNumber } = require('../utils/emailAndPhoneValidations');
 
 class CustomerService {
@@ -57,6 +58,45 @@ class CustomerService {
             },
         };
     }
+
+    async signInTravelCompany({ email, password }) {
+
+        if (!isValidEmail(email)) {
+            throw new ValidationError('Invalid email format');
+        }
+
+        // Check if the company exists
+        const existingCompany = await prisma.travelcompany.findFirst({
+            where: { email },
+        });
+
+        if (!existingCompany) {
+            throw new UnauthorizedError('Invalid email or password');
+        }
+
+        const isMatch = await bcrypt.compare(password, existingCompany.password_hash);
+
+        if (!isMatch) {
+            throw new UnauthorizedError('Invalid email or password');
+        }
+
+        const token = generateToken({ companyId: existingCompany.id, email: existingCompany.email });
+
+        return {
+            success: true,
+            statusCode: 200,
+            message: 'Sign-in successful',
+            data: {
+                token,
+                company: {
+                    id: existingCompany.id,
+                    email: existingCompany.email,
+                    company_name: existingCompany.company_name,
+                },
+            },
+        };
+    }
+
 }
 
 module.exports = new CustomerService();
