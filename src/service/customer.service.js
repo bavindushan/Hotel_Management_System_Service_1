@@ -199,7 +199,7 @@ class CustomerService {
 
         if (reservation.payment_status !== "Paid") {
             throw new ValidationError("Only paid reservations can be marked as complete");
-            
+
         }
 
         const updated = await prisma.reservation.update({
@@ -208,6 +208,38 @@ class CustomerService {
         });
 
         return updated;
+    }
+
+    async getReservationsByCustomer(customerId) {
+        const reservations = await prisma.reservation.findMany({
+            where: { customer_id: customerId },
+            include: {
+                bookedrooms: {
+                    include: {
+                        room: {
+                            select: {
+                                room_number: true,
+                                status: true,
+                                roomtype: {
+                                    select: { 
+                                        type_name: true 
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                branch: {
+                    select: { 
+                        name: true,
+                        address: true 
+                    }
+                }
+            },
+            orderBy: { check_in_date: 'desc' }
+        });
+
+        return reservations;
     }
 
 }

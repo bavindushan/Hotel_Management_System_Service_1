@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const asyncHandler = require('express-async-handler');
-const authenticateToken = require('../middlewares/authMiddleware');
 const customerController = require('../controller/customer.controller');
 const authMiddleware = require('../middlewares/authMiddleware');
 
@@ -174,5 +173,38 @@ router.patch('/reservation/:id/cancel', authMiddleware, asyncHandler(customerCon
  *         description: Reservation not found
  */
 router.patch("/reservation/:id/complete", authMiddleware, asyncHandler(customerController.completeReservation));
+
+/**
+ * @swagger
+ * /customer/reservations/my:
+ *   get:
+ *     summary: Get own reservations
+ *     tags: [Customer]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         description: Bearer token
+ *         schema:
+ *           type: string
+ *           example: Bearer <your_access_token>
+ *     responses:
+ *       200:
+ *         description: List of reservations for the logged-in customer
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ */
+router.get("/reservations/my", authMiddleware, asyncHandler(customerController.getMyReservations));
+
+
 
 module.exports = router;
