@@ -141,6 +141,12 @@ const completeReservation = async (req, res) => {
     res.status(200).json({ message: "Reservation marked as complete", data: updatedReservation });
 };
 
+const getMyReservations = async (req, res) => {
+    const customerId = req.user.id;
+    const reservations = await CustomerService.getReservationsByCustomer(customerId);
+    res.status(200).json({ data: reservations });
+};
+
 
 module.exports = {
     signIn,
@@ -148,4 +154,5 @@ module.exports = {
     createReservation,
     cancelReservation,
     completeReservation,
+    getMyReservations,
 };
