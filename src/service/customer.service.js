@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const generateToken = require("../utils/generateToken");
 const { PrismaClient, Prisma } = require('@prisma/client');
 const { ValidationError } = require('../utils/AppError');
 
@@ -17,11 +17,11 @@ class CustomerService {
             };
         }
 
-        const token = jwt.sign(
-            { id: user.id, email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRIES || '1d' }
-        );
+        const token = generateToken({
+            id: user.id,
+            email: user.email,
+            role: "customer"
+        });
 
         return {
             success: true,
@@ -221,8 +221,8 @@ class CustomerService {
                                 room_number: true,
                                 status: true,
                                 roomtype: {
-                                    select: { 
-                                        type_name: true 
+                                    select: {
+                                        type_name: true
                                     }
                                 }
                             }
@@ -230,9 +230,9 @@ class CustomerService {
                     }
                 },
                 branch: {
-                    select: { 
+                    select: {
                         name: true,
-                        address: true 
+                        address: true
                     }
                 }
             },
