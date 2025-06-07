@@ -1,9 +1,10 @@
 const bcrypt = require('bcrypt');
 const generateToken = require("../utils/generateToken");
-const { PrismaClient, Prisma } = require('@prisma/client');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 const { ValidationError } = require('../utils/AppError');
 
-const prisma = new PrismaClient();
+
 
 class CustomerService {
     async signIn({ email, password }) {

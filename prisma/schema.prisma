@@ -197,6 +197,7 @@ model travelcompany {
   email          String?          @db.VarChar(100)
   phone          String?          @db.VarChar(20)
   discount_rate  Decimal?         @db.Decimal(5, 2)
+  password_hash  String           @db.VarChar(255)
   blockedbooking blockedbooking[]
 }
 
