@@ -1,15 +1,8 @@
 const CustomerService = require('../service/customer.service');
 const { ValidationError } = require('../utils/AppError');
+const { isValidEmail, isValidPhoneNumber } = require('../utils/emailAndPhoneValidations');
 
-const isValidEmail = (email) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-};
 
-const isValidPhoneNumber = (phone) => {
-    const regex = /^0\d{9}$/;
-    return regex.test(phone);
-};
 
 const signIn = async (req, res, next) => {
     try {
@@ -61,7 +54,6 @@ const signUp = async (req, res, next) => {
         next(err);
     }
 };
-
 
 const createReservation = async (req, res, next) => {
     try {
