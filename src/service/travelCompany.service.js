@@ -58,7 +58,6 @@ class CustomerService {
             },
         };
     }
-
     async signInTravelCompany({ email, password }) {
 
         if (!isValidEmail(email)) {
@@ -196,6 +195,63 @@ class CustomerService {
             data: blockedBooking
         };
     }
+
+    async getBlockedBookingsByCompanyId(companyId) {
+        if (!companyId || isNaN(companyId)) {
+            throw new ValidationError('Invalid company ID.');
+        }
+
+        const reservations = await prisma.blockedbooking.findMany({
+            where: {
+                company_id: companyId
+            },
+            include: {
+                roomtype: true,
+                branch: true,
+                blockedbookingrooms: {
+                    include: {
+                        room: true
+                    }
+                }
+            }
+        });
+
+        return {
+            success: true,
+            statusCode: 200,
+            message: 'Reservations fetched successfully.',
+            data: reservations
+        };
+    }
+
+    async getOwnBillDetails(companyId) {
+        if (!companyId) {
+            throw new NotFoundError('Company ID not found in token.');
+        }
+
+        const billings = await prisma.travelcompanybill.findMany({
+            where: {
+                blockedbooking: {
+                    company_id: companyId
+                }
+            },
+            include: {
+                blockedbooking: true
+            }
+        });
+
+        if (!billings.length) {
+            throw new NotFoundError('No billing records found for this travel company.');
+        }
+
+        return {
+            success: true,
+            statusCode: 200,
+            message: 'Travel company billing records fetched successfully.',
+            data: billings
+        };
+    }
+
 
 }
 

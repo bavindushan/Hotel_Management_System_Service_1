@@ -45,19 +45,19 @@ const signIn = async (req, res) => {
 const createReservation = async (req, res) => {
     const companyId = req.user.companyId;
     //console.log("JWT token company id :- ",companyId);
-    
+
 
     if (!companyId) {
         throw new UnauthorizedError('Invalid or missing company ID in token.');
     }
 
     // Merge companyId into request body
-    const dataWithCompanyId = {
+    const data = {
         ...req.body,
         companyId
     };
-    
-    const result = await travelCompanyService.createBlockedBooking(dataWithCompanyId);
+
+    const result = await travelCompanyService.createBlockedBooking(data);
 
     res.status(result.statusCode || 201).json({
         success: true,
@@ -67,8 +67,37 @@ const createReservation = async (req, res) => {
     });
 };
 
+const getMyReservations = async (req, res) => {
+    const companyId = req.user.companyId;
+
+    if (!companyId) {
+        throw new ValidationError('Invalid or missing company ID in token.');
+    }
+
+    const result = await travelCompanyService.getBlockedBookingsByCompanyId(companyId);
+
+    res.status(result.statusCode || 200).json({
+        success: true,
+        statusCode: result.statusCode || 200,
+        message: result.message || 'Reservations fetched successfully.',
+        data: result.data || []
+    });
+};
+
+
+const getOwnBillDetails = async (req, res) => {
+    const companyId = req.user.companyId;
+
+    const result = await travelCompanyService.getOwnBillDetails(companyId);
+
+    res.status(result.statusCode).json(result);
+};
+
+
 module.exports = {
     signUp,
     signIn,
     createReservation,
+    getMyReservations,
+    getOwnBillDetails,
 };

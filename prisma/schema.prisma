@@ -243,14 +243,15 @@ enum billing_status {
   Unpaid
 }
 
-enum reservation_payment_status {
-  Pending
-  Paid
-}
-
 enum reservation_reservation_status {
   Confirmed
   Cancelled
   No_show   @map("No-show")
   Complete
+}
+
+enum reservation_payment_status {
+  Pending
+  Paid
+  Confirmed
 }

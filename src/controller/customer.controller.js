@@ -1,5 +1,5 @@
 const CustomerService = require('../service/customer.service');
-const { ValidationError } = require('../utils/AppError');
+const { ValidationError, NotFoundError } = require('../utils/AppError');
 const { isValidEmail, isValidPhoneNumber } = require('../utils/emailAndPhoneValidations');
 
 
@@ -139,6 +139,25 @@ const getMyReservations = async (req, res) => {
     res.status(200).json({ data: reservations });
 };
 
+const addReservationPaymentDetails = async (req, res) => {
+    const result = await CustomerService.addReservationPaymentDetails(req.body);
+
+    res.status(result.statusCode || 201).json({
+        success: result.success || true,
+        statusCode: result.statusCode || 201,
+        message: result.message || 'Payment details added successfully.',
+        data: result.data || []
+    });
+};
+
+const getOwnBilling = async (req, res) => {
+    const customerId = req.user.id;
+
+    const result = await CustomerService.getOwnBillingDetails(customerId);
+
+    res.status(result.statusCode).json(result);
+};
+
 
 module.exports = {
     signIn,
@@ -147,4 +166,6 @@ module.exports = {
     cancelReservation,
     completeReservation,
     getMyReservations,
+    addReservationPaymentDetails,
+    getOwnBilling,
 };

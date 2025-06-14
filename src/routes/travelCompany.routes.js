@@ -209,5 +209,44 @@ router.post('/sign-in', asyncHandler(travelCompanyController.signIn));
  */
 router.post('/reservations', authMiddleware, asyncHandler(travelCompanyController.createReservation));
 
+/**
+ * @swagger
+ * /travelcompany/reservations/my:
+ *   get:
+ *     summary: Get own reservations
+ *     tags: [TravelCompany]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         description: Bearer token
+ *         schema:
+ *           type: string
+ *           example: Bearer <your_access_token>
+ *     responses:
+ *       200:
+ *         description: List of own reservations retrieved successfully
+ */
+router.get('/reservations/my',authMiddleware,asyncHandler(travelCompanyController.getMyReservations));
+
+/**
+ * @swagger
+ * /travel-company/billing:
+ *   get:
+ *     summary: Get own billing details (Travel Company)
+ *     tags: [TravelCompany]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Billing records fetched successfully
+ *       404:
+ *         description: No billing records found
+ */
+router.get('/billing', authMiddleware, asyncHandler(travelCompanyController.getOwnBillDetails));
+
+
 module.exports = router;
 

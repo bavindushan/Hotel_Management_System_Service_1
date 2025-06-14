@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const generateToken = require("../utils/generateToken");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { ValidationError } = require('../utils/AppError');
+const { ValidationError, NotFoundError, BadRequestError } = require('../utils/AppError');
 
 
 
@@ -241,6 +241,98 @@ class CustomerService {
         });
 
         return reservations;
+    }
+
+
+    async addReservationPaymentDetails(data) {
+        const {
+            reservationId,
+            cardType,
+            cardNumber,
+            cardExpMonth,
+            cardExpYear,
+            cvnCode
+        } = data;
+
+        // Validate required fields
+        if (!reservationId || !cardType || !cardNumber || !cardExpMonth || !cardExpYear || !cvnCode) {
+            throw new ValidationError('All fields are required.');
+        }
+
+        // Check if reservation exists
+        const reservation = await prisma.reservation.findUnique({
+            where: { id: reservationId }
+        });
+
+        if (!reservation) {
+            throw new NotFoundError(`Reservation with ID ${reservationId} not found.`);
+        }
+
+        // Check if payment details already exist for this reservation
+        const existing = await prisma.reservationpaymentdetails.findUnique({
+            where: { reservation_id: reservationId }
+        });
+
+        if (existing) {
+            throw new BadRequestError('Payment details for this reservation already exist.');
+        }
+
+        // Create payment details
+        const paymentDetails = await prisma.reservationpaymentdetails.create({
+            data: {
+                reservation_id: reservationId,
+                card_type: cardType,
+                card_number: cardNumber,
+                card_exp_month: cardExpMonth,
+                card_exp_year: cardExpYear,
+                cvn_code: cvnCode
+            }
+        });
+
+        await prisma.reservation.update({
+            where: { id: reservationId },
+            data: { payment_status: 'Confirmed' }
+        });
+
+        await prisma.reservation.update({
+            where: { id: reservationId },
+            data: { reservation_status: 'Confirmed' }
+        });
+
+        return {
+            success: true,
+            statusCode: 201,
+            message: 'Payment details added successfully.',
+            data: paymentDetails
+        };
+    }
+
+    async getOwnBillingDetails(customerId) {
+        if (!customerId) {
+            throw new NotFoundError('Customer ID not found in token.');
+        }
+
+        const billings = await prisma.billing.findMany({
+            where: {
+                reservation: {
+                    customer_id: customerId
+                }
+            },
+            include: {
+                reservation: true
+            }
+        });
+
+        if (!billings.length) {
+            throw new NotFoundError('No billing records found for this customer.');
+        }
+
+        return {
+            success: true,
+            statusCode: 200,
+            message: 'Billing records fetched successfully.',
+            data: billings
+        };
     }
 
 }
