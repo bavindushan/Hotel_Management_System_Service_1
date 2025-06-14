@@ -3,7 +3,7 @@ const generateToken = require("../utils/generateToken");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-const { ValidationError, BadRequestError, UnauthorizedError } = require('../utils/AppError');
+const { ValidationError, BadRequestError, UnauthorizedError, NotFoundError } = require('../utils/AppError');
 const { isValidEmail, isValidPhoneNumber } = require('../utils/emailAndPhoneValidations');
 
 class CustomerService {
@@ -94,6 +94,106 @@ class CustomerService {
                     company_name: existingCompany.company_name,
                 },
             },
+        };
+    }
+
+    async createBlockedBooking(data) {
+        const {
+            companyId,
+            branchId,
+            roomTypeId,
+            startDate,
+            endDate,
+            numberOfRooms
+        } = data;
+
+        // Validate required fields
+        if (!companyId || !branchId || !roomTypeId || !startDate || !endDate || !numberOfRooms) {
+            throw new ValidationError('All fields (companyId, branchId, roomTypeId, startDate, endDate, numberOfRooms) are required.');
+        }
+
+        if (numberOfRooms <= 3) {
+            throw new ValidationError('numberOfRooms must be grater than 3.');
+
+        }
+
+        if (isNaN(numberOfRooms) || numberOfRooms <= 0) {
+            throw new ValidationError('numberOfRooms must be a positive number.');
+        }
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            throw new ValidationError('Invalid startDate or endDate.');
+        }
+
+        if (start > end) {
+            throw new ValidationError('startDate must be before or equal to endDate.');
+        }
+
+        // Check if company, branch, and room type exist
+        const [company, branch, roomType] = await Promise.all([
+            prisma.travelcompany.findFirst({ where: { id: companyId } }),
+            prisma.branch.findFirst({ where: { id: branchId } }),
+            prisma.roomtype.findFirst({ where: { id: roomTypeId } }),
+        ]);
+
+        if (!company) throw new NotFoundError(`Travel company with ID ${companyId} not found.`);
+        if (!branch) throw new NotFoundError(`Branch with ID ${branchId} not found.`);
+        if (!roomType) throw new NotFoundError(`Room type with ID ${roomTypeId} not found.`);
+
+        // Fetch available rooms
+        const availableRooms = await prisma.room.findMany({
+            where: {
+                branch_id: branchId,
+                room_type_id: roomTypeId,
+                status: 'Available'
+            },
+            take: numberOfRooms
+        });
+
+        if (availableRooms.length < numberOfRooms) {
+            throw new BadRequestError(`Only ${availableRooms.length} room(s) available, but ${numberOfRooms} requested.`);
+        }
+
+        // Create blocked booking
+        const blockedBooking = await prisma.blockedbooking.create({
+            data: {
+                company_id: companyId,
+                branch_id: branchId,
+                room_type_id: roomTypeId,
+                start_date: start,
+                end_date: end,
+                number_of_rooms: numberOfRooms,
+            }
+        });
+
+        // Link rooms to blocked booking
+        const bookingRoomsData = availableRooms.map(room => ({
+            blocked_booking_id: blockedBooking.id,
+            room_id: room.id
+        }));
+
+        await prisma.blockedbookingrooms.createMany({
+            data: bookingRoomsData
+        });
+
+        // Set status of rooms to "OCCUPIED"
+        await Promise.all(
+            availableRooms.map(room =>
+                prisma.room.update({
+                    where: { id: room.id },
+                    data: { status: 'OCCUPIED' }
+                })
+            )
+        );
+
+        return {
+            success: true,
+            statusCode: 201,
+            message: 'Reservation created successfully.',
+            data: blockedBooking
         };
     }
 

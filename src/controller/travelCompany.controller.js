@@ -1,6 +1,5 @@
 const travelCompanyService = require('../service/travelCompany.service');
-const asyncHandler = require('../middlewares/asnyHandler');
-const { ValidationError } = require('../utils/AppError');
+const { ValidationError, UnauthorizedError } = require('../utils/AppError');
 const { isValidEmail, isValidPhoneNumber } = require('../utils/emailAndPhoneValidations');
 
 const signUp = async (req, res) => {
@@ -39,12 +38,37 @@ const signIn = async (req, res) => {
         throw new ValidationError('Email and password are required');
     }
 
-    const result = await travelCompanyService.signInTravelCompany({email, password});
+    const result = await travelCompanyService.signInTravelCompany({ email, password });
     res.status(result.statusCode || 200).json(result);
 };
 
+const createReservation = async (req, res) => {
+    const companyId = req.user.companyId;
+    //console.log("JWT token company id :- ",companyId);
+    
+
+    if (!companyId) {
+        throw new UnauthorizedError('Invalid or missing company ID in token.');
+    }
+
+    // Merge companyId into request body
+    const dataWithCompanyId = {
+        ...req.body,
+        companyId
+    };
+    
+    const result = await travelCompanyService.createBlockedBooking(dataWithCompanyId);
+
+    res.status(result.statusCode || 201).json({
+        success: true,
+        statusCode: result.statusCode || 201,
+        message: result.message || 'Reservation created successfully.',
+        data: result.data || null
+    });
+};
 
 module.exports = {
     signUp,
     signIn,
+    createReservation,
 };

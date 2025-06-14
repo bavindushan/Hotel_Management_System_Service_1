@@ -141,5 +141,73 @@ router.post('/sign-up', asyncHandler(travelCompanyController.signUp));
  */
 router.post('/sign-in', asyncHandler(travelCompanyController.signIn));
 
+/**
+ * @swagger
+ * /travel-company/reservations:
+ *   post:
+ *     summary: Create a blocked reservation for a travel company
+ *     tags: [TravelCompany]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         description: Bearer token
+ *         schema:
+ *           type: string
+ *           example: Bearer <your_access_token>
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - branchId
+ *               - roomTypeId
+ *               - startDate
+ *               - endDate
+ *               - numberOfRooms
+ *             properties:
+ *               branchId:
+ *                 type: integer
+ *                 example: 2
+ *               roomTypeId:
+ *                 type: integer
+ *                 example: 3
+ *               startDate:
+ *                 type: string
+ *                 format: date
+ *                 example: 2025-06-08
+ *               endDate:
+ *                 type: string
+ *                 format: date
+ *                 example: 2025-06-10
+ *               numberOfRooms:
+ *                 type: integer
+ *                 example: 5
+ *     responses:
+ *       201:
+ *         description: Reservation created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 201
+ *                 message:
+ *                   type: string
+ *                   example: Reservation created successfully.
+ *                 data:
+ *                   $ref: '#/components/schemas/BlockedBooking'
+ */
+router.post('/reservations', authMiddleware, asyncHandler(travelCompanyController.createReservation));
+
 module.exports = router;
 
