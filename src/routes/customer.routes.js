@@ -205,6 +205,61 @@ router.patch("/reservation/:id/complete", authMiddleware, asyncHandler(customerC
  */
 router.get("/reservations/my", authMiddleware, asyncHandler(customerController.getMyReservations));
 
+/**
+ * @swagger
+ * /customer/reservation/payment-details:
+ *   post:
+ *     summary: Add payment details for a reservation
+ *     tags: [Customer]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - reservationId
+ *               - cardType
+ *               - cardNumber
+ *               - cardExpMonth
+ *               - cardExpYear
+ *               - cvnCode
+ *             properties:
+ *               reservationId:
+ *                 type: integer
+ *               cardType:
+ *                 type: string
+ *               cardNumber:
+ *                 type: string
+ *               cardExpMonth:
+ *                 type: string
+ *               cardExpYear:
+ *                 type: string
+ *               cvnCode:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Payment details added successfully
+ */
+router.post('/reservation/payment-details',authMiddleware,asyncHandler(customerController.addReservationPaymentDetails));
+
+/**
+ * @swagger
+ * /customer/billing:
+ *   get:
+ *     summary: Get own billing details
+ *     tags: [Customer]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Billing records fetched successfully.
+ *       404:
+ *         description: No billing records found.
+ */
+router.get('/billing', authMiddleware, asyncHandler(customerController.getOwnBilling));
 
 
 module.exports = router;
