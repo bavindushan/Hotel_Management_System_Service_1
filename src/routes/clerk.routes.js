@@ -272,4 +272,56 @@ router.get(
     clerkController.getReservations
 );
 
+/**
+ * @swagger
+ * /api/clerk/check-in:
+ *   post:
+ *     summary: Check-in customer and assign rooms
+ *     description: Validates the reservation and updates the status to checked-in while marking rooms as occupied.
+ *     tags: [Receptionist]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       description: Reservation ID to check-in
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - reservationId
+ *             properties:
+ *               reservationId:
+ *                 type: integer
+ *                 example: 123
+ *     responses:
+ *       200:
+ *         description: Check-in successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Customer checked in successfully
+ *                 data:
+ *                   $ref: '#/components/schemas/Reservation'
+ *       400:
+ *         description: Missing or invalid reservation ID or status not confirmed
+ *       404:
+ *         description: Reservation not found
+ *       500:
+ *         description: Internal server error
+ */
+
+router.post(
+    '/check-in',
+    authenticateRole(['Receptionist']),
+    clerkController.checkIn
+);
+
 module.exports = router;

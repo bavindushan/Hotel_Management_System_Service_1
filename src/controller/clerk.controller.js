@@ -40,7 +40,28 @@ const getReservations = async (req, res, next) => {
     }
 };
 
+const checkIn  = async (req, res, next) => {
+    try {
+        const { reservationId } = req.body;
+
+        if (!reservationId) {
+            return res.status(400).json({ success: false, message: "reservationId is required" });
+        }
+
+        const result = await clerkService.checkInReservation(reservationId);
+
+        res.status(200).json({
+            success: true,
+            message: "Customer checked in successfully",
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     createReservation,
     getReservations,
+    checkIn,
 };

@@ -207,7 +207,42 @@ const getReservations = async (filters) => {
     };
 };
 
+const checkInReservation = async (reservationId) => {
+    // Validate reservation exists and status is Confirmed
+    const reservation = await prisma.reservation.findUnique({
+        where: { id: reservationId },
+        include: {
+            bookedrooms: true,
+        }
+    });
+
+    if (!reservation) {
+        throw new NotFoundError(`Reservation ID ${reservationId} not found`);
+    }
+
+    if (reservation.reservation_status !== 'Confirmed') {
+        throw new ValidationError(`Reservation status must be 'Confirmed' to check-in`);
+    }
+
+    const roomIds = reservation.bookedrooms.map(br => br.room_id);
+
+    // Update rooms status to Occupied
+    await prisma.room.updateMany({
+        where: { id: { in: roomIds } },
+        data: { status: 'Occupied' },
+    });
+
+    // Update reservation status to Confirmed (or Checked_in if you updated the enum)
+    const updatedReservation = await prisma.reservation.update({
+        where: { id: reservationId },
+        data: { reservation_status: 'Confirmed' },
+    });
+
+    return updatedReservation;
+};
+
 module.exports = {
     createReservation,
     getReservations,
+    checkInReservation,
 };
