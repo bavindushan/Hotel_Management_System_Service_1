@@ -41,6 +41,8 @@ model roomtype {
   base_price     Decimal          @db.Decimal(10, 2)
   blockedbooking blockedbooking[]
   room           room[]
+
+  @@map("room_type")
 }
 
 model billing {

@@ -443,7 +443,7 @@ class CustomerService {
                 id: { notIn: bookedRoomIds }
             },
             include: {
-                room_type: true
+                roomtype: true
             }
         });
 
