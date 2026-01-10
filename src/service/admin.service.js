@@ -69,7 +69,30 @@ const updateRoom = async (id, data) => {
     return updatedRoom;
 };
 
+const createRoomType = async ({ type_name, description, base_price }) => {
+    // // Check uniqueness of type_name
+    // const existing = await prisma.roomtype.findUnique({
+    //     where: { type_name },
+    // });
+
+    // if (existing) {
+    //     throw new Error(`Room type with type_name "${type_name}" already exists`);
+    // }
+
+    // Create new room type
+    const newRoomType = await prisma.roomtype.create({
+        data: {
+            type_name,
+            description,
+            base_price: parseFloat(base_price),
+        },
+    });
+
+    return newRoomType;
+};
+
 module.exports = {
     createRoom,
     updateRoom,
+    createRoomType,
 };

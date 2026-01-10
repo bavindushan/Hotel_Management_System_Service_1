@@ -1,4 +1,4 @@
-const adminRoomsService = require('../service/admin.service');
+const adminService = require('../service/admin.service');
 
 const addRoom = async (req, res) => {
     try {
@@ -9,7 +9,7 @@ const addRoom = async (req, res) => {
             return res.status(400).json({ message: 'room_number, room_type_id and branch_id are required' });
         }
 
-        const newRoom = await adminRoomsService.createRoom({
+        const newRoom = await adminService.createRoom({
             room_number,
             room_type_id,
             branch_id,
@@ -47,7 +47,7 @@ const updateRoom = async (req, res) => {
             return res.status(400).json({ message: 'No valid fields provided for update' });
         }
 
-        const updatedRoom = await adminRoomsService.updateRoom(roomId, fieldsToUpdate);
+        const updatedRoom = await adminService.updateRoom(roomId, fieldsToUpdate);
         return res.status(200).json(updatedRoom);
     } catch (error) {
         console.error('Error in updateRoom:', error);
@@ -58,7 +58,39 @@ const updateRoom = async (req, res) => {
     }
 };
 
+const addRoomType = async (req, res) => {
+    try {
+        const { type_name, description, base_price } = req.body;
+
+        if (!type_name || base_price === undefined) {
+            return res.status(400).json({ message: 'type_name and base_price are required' });
+        }
+
+        // base_price must be a valid number
+        const price = parseFloat(base_price);
+        if (isNaN(price)) {
+            return res.status(400).json({ message: 'base_price must be a valid number' });
+        }
+
+        const newRoomType = await adminService.createRoomType({
+            type_name,
+            description,
+            base_price: price,
+        });
+
+        return res.status(201).json(newRoomType);
+    } catch (error) {
+        console.error('Error in addRoomType:', error);
+        if (error.message.includes('already exists')) {
+            return res.status(409).json({ message: error.message });
+        }
+        return res.status(500).json({ message: error.message || 'Internal Server Error' });
+    }
+};
+
+
 module.exports = {
     addRoom,
     updateRoom,
+    addRoomType,
 };

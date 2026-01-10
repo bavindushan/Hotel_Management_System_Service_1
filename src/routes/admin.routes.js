@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authenticateRole = require('../middlewares/auth.middleware');
-const adminRoomsController = require('../controller/admin.controller');
+const adminController = require('../controller/admin.controller');
 
 /**
  * @swagger
@@ -101,7 +101,7 @@ const adminRoomsController = require('../controller/admin.controller');
 router.post(
     '/rooms',
     authenticateRole(['Admin', 'Manager']),
-    adminRoomsController.addRoom
+    adminController.addRoom
 );
 
 /**
@@ -165,7 +165,91 @@ router.post(
 router.put(
     '/rooms/:id',
     authenticateRole(['Admin', 'Manager']),
-    adminRoomsController.updateRoom
+    adminController.updateRoom
+);
+
+/**
+ * @swagger
+ * /api/admin/room-types:
+ *   post:
+ *     summary: Create a new room type with base price
+ *     description: Define room types with a unique type_name, optional description, and base price.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - type_name
+ *               - base_price
+ *             properties:
+ *               type_name:
+ *                 type: string
+ *                 example: Deluxe
+ *                 description: Unique name of the room type
+ *               description:
+ *                 type: string
+ *                 example: A deluxe room with sea view
+ *                 description: Optional description of the room type
+ *               base_price:
+ *                 type: number
+ *                 format: float
+ *                 example: 200.00
+ *                 description: Base price for this room type
+ *     responses:
+ *       201:
+ *         description: Room type created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RoomType'
+ *       400:
+ *         description: Missing required fields or validation error
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "type_name and base_price are required"
+ *       409:
+ *         description: Conflict - room type with this name already exists
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Room type with type_name 'Deluxe' already exists"
+ *       401:
+ *         description: Unauthorized - missing or invalid token
+ *       403:
+ *         description: Forbidden - insufficient permissions or invalid token
+ *       500:
+ *         description: Internal server error
+ *
+ * components:
+ *   schemas:
+ *     RoomType:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         type_name:
+ *           type: string
+ *           example: Deluxe
+ *         description:
+ *           type: string
+ *           example: A deluxe room with sea view
+ *         base_price:
+ *           type: number
+ *           format: float
+ *           example: 200.00
+ */
+
+router.post(
+    '/room-types',
+    authenticateRole(['Admin', 'Manager']),
+    adminController.addRoomType
 );
 
 
