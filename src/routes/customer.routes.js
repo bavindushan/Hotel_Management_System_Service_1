@@ -302,5 +302,96 @@ router.get('/billing', authMiddleware, asyncHandler(customerController.getOwnBil
  */
 router.get('/profile', authMiddleware, asyncHandler(customerController.getCustomerProfile));
 
+/**
+ * @swagger
+ * /customer/profile:
+ *   put:
+ *     summary: Update logged-in customer's profile
+ *     tags: [Customer]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               full_name:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *             example:
+ *               full_name: John Doe
+ *               phone: "0712345678"
+ *               address: "123, Main Street"
+ *               password: "newpassword123"
+ *     responses:
+ *       200:
+ *         description: Customer profile updated successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ */
+router.put('/profile', authMiddleware, asyncHandler(customerController.updateProfile));
+
+/**
+ * @swagger
+ * /customer/rooms/availability:
+ *   get:
+ *     summary: Get available rooms for given branch and dates
+ *     tags: [Customer]
+ *     parameters:
+ *       - in: query
+ *         name: branch_id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Branch ID to check rooms availability
+ *       - in: query
+ *         name: check_in_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         required: true
+ *         description: Check-in date
+ *       - in: query
+ *         name: check_out_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         required: true
+ *         description: Check-out date
+ *     responses:
+ *       200:
+ *         description: List of available rooms
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       room_number:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                       room_type:
+ *                         type: string
+ */
+router.get('/rooms/availability', authMiddleware, asyncHandler(customerController.getAvailableRooms));
+
 
 module.exports = router;

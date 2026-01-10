@@ -221,7 +221,7 @@ class CustomerService {
                             select: {
                                 room_number: true,
                                 status: true,
-                                roomtype: {
+                                room_type: {
                                     select: {
                                         type_name: true
                                     }
@@ -242,7 +242,6 @@ class CustomerService {
 
         return reservations;
     }
-
 
     async addReservationPaymentDetails(data) {
         const {
@@ -363,6 +362,99 @@ class CustomerService {
             data: customer,
         };
     }
+
+    async updateProfile(customerId, updateData) {
+        const { full_name, phone, address, password } = updateData;
+
+        // Check if customer exists
+        const customer = await prisma.customer.findUnique({ where: { id: customerId } });
+        if (!customer) {
+            throw new NotFoundError("Customer not found");
+        }
+
+        // Prepare update object
+        const dataToUpdate = {};
+
+        if (full_name) dataToUpdate.full_name = full_name;
+        if (phone) dataToUpdate.phone = phone;
+        if (address) dataToUpdate.address = address;
+        if (password) {
+            const hashed = await bcrypt.hash(password, 10);
+            dataToUpdate.password_hash = hashed;
+        }
+
+        const updatedCustomer = await prisma.customer.update({
+            where: { id: customerId },
+            data: dataToUpdate,
+        });
+
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Customer profile updated successfully",
+            data: {
+                id: updatedCustomer.id,
+                full_name: updatedCustomer.full_name,
+                email: updatedCustomer.email,
+                phone: updatedCustomer.phone,
+                address: updatedCustomer.address,
+            },
+        };
+    }
+
+    async getAvailableRooms({ branch_id, check_in_date, check_out_date }) {
+        // Validate branch existence
+        const branch = await prisma.branch.findUnique({ where: { id: branch_id } });
+        if (!branch) {
+            throw new ValidationError("Invalid branch ID");
+        }
+
+        const checkIn = new Date(check_in_date);
+        const checkOut = new Date(check_out_date);
+
+        if (isNaN(checkIn) || isNaN(checkOut)) {
+            throw new ValidationError("Invalid date format");
+        }
+        if (checkOut <= checkIn) {
+            throw new ValidationError("Check-out date must be after check-in date");
+        }
+
+        // Find rooms in branch that are not booked during the period
+        const bookedRooms = await prisma.bookedrooms.findMany({
+            where: {
+                reservation: {
+                    check_in_date: { lt: checkOut },
+                    check_out_date: { gt: checkIn },
+                    reservation_status: { not: 'Cancelled' },
+                }
+            },
+            select: {
+                room_id: true
+            }
+        });
+
+        const bookedRoomIds = bookedRooms.map(r => r.room_id);
+
+        // Get available rooms in the branch excluding booked ones and with status Available
+        const availableRooms = await prisma.room.findMany({
+            where: {
+                branch_id,
+                status: 'Available',
+                id: { notIn: bookedRoomIds }
+            },
+            include: {
+                room_type: true
+            }
+        });
+
+        return availableRooms.map(room => ({
+            id: room.id,
+            room_number: room.room_number,
+            status: room.status,
+            room_type: room.room_type?.type_name || null
+        }));
+    }
+
 
 }
 

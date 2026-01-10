@@ -171,6 +171,56 @@ const getCustomerProfile = async (req, res) => {
     });
 };
 
+const updateProfile = async (req, res, next) => {
+    try {
+        const customerId = req.user.id; // from JWT token
+        const { full_name, phone, address, password } = req.body;
+
+        // Basic validation (add more if needed)
+        if (phone && !isValidPhoneNumber(phone)) {
+            throw new ValidationError("Invalid phone number format");
+        }
+
+        const result = await CustomerService.updateProfile(customerId, { full_name, phone, address, password });
+
+        res.status(result.statusCode || 200).json({
+            success: result.success ?? true,
+            message: result.message ?? "Profile updated successfully",
+            data: result.data ?? null,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+const getAvailableRooms = async (req, res, next) => {
+    try {
+        const { branch_id, check_in_date, check_out_date } = req.query;
+
+        if (!branch_id || !check_in_date || !check_out_date) {
+            return res.status(400).json({
+                success: false,
+                message: "branch_id, check_in_date and check_out_date are required."
+            });
+        }
+
+        const result = await CustomerService.getAvailableRooms({
+            branch_id: parseInt(branch_id),
+            check_in_date,
+            check_out_date
+        });
+
+        res.status(200).json({
+            success: true,
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+
 module.exports = {
     signIn,
     signUp,
@@ -181,4 +231,7 @@ module.exports = {
     addReservationPaymentDetails,
     getOwnBilling,
     getCustomerProfile,
+    updateProfile,
+    getAvailableRooms,
+    
 };
