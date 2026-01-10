@@ -241,8 +241,220 @@ const checkInReservation = async (reservationId) => {
     return updatedReservation;
 };
 
+const checkOutReservation = async (reservationId) => {
+    const reservation = await prisma.reservation.findUnique({
+        where: { id: Number(reservationId) },
+        include: {
+            bookedrooms: {
+                include: {
+                    room: true
+                }
+            }
+        }
+    });
+
+    if (!reservation) {
+        throw new NotFoundError('Reservation not found');
+    }
+
+    if (reservation.reservation_status !== 'Confirmed') {
+        throw new ValidationError('Reservation is not checked-in');
+    }
+
+    // Calculate nights
+    const checkIn = new Date(reservation.check_in_date);
+    const checkOut = new Date(reservation.check_out_date);
+    const nights = Math.ceil(
+        (checkOut - checkIn) / (1000 * 60 * 60 * 24)
+    );
+
+    let totalAmount = 0;
+
+    reservation.bookedrooms.forEach(br => {
+        totalAmount += br.room.price_per_night * nights;
+    });
+
+    const taxAmount = totalAmount * 0.1; // 10% tax
+    const finalAmount = totalAmount + taxAmount;
+
+    // Transaction
+    await prisma.$transaction(async (tx) => {
+        // Create billing
+        await tx.billing.create({
+            data: {
+                reservation_id: reservation.id,
+                total_amount: finalAmount,
+                tax_amount: taxAmount,
+                other_charges: 0,
+                status: 'Paid',
+            }
+        });
+
+        // Update rooms
+        const roomIds = reservation.bookedrooms.map(br => br.room_id);
+        await tx.room.updateMany({
+            where: { id: { in: roomIds } },
+            data: { status: 'Available' }
+        });
+
+        // Update reservation
+        await tx.reservation.update({
+            where: { id: reservation.id },
+            data: {
+                reservation_status: 'Completed',
+                payment_status: 'Paid'
+            }
+        });
+    });
+
+    return {
+        reservationId: reservation.id,
+        nights,
+        totalAmount: finalAmount
+    };
+};
+
+const updateReservationDates = async (reservationId, newCheckOutDate) => {
+    const reservation = await prisma.reservation.findUnique({
+        where: { id: Number(reservationId) },
+        include: {
+            bookedrooms: true
+        }
+    });
+
+    if (!reservation) {
+        throw new NotFoundError('Reservation not found');
+    }
+
+    if (['Cancelled', 'Completed'].includes(reservation.reservation_status)) {
+        throw new ValidationError('Cannot update dates for this reservation');
+    }
+
+    const newCheckout = new Date(newCheckOutDate);
+    const currentCheckout = new Date(reservation.check_out_date);
+
+    if (isNaN(newCheckout)) {
+        throw new ValidationError('Invalid date format');
+    }
+
+    if (newCheckout <= currentCheckout) {
+        throw new ValidationError('New checkout date must be after current checkout date');
+    }
+
+    // Check room availability for extension
+    const roomIds = reservation.bookedrooms.map(br => br.room_id);
+
+    const conflicts = await prisma.bookedrooms.findMany({
+        where: {
+            room_id: { in: roomIds },
+            reservation: {
+                id: { not: reservation.id },
+                reservation_status: { not: 'Cancelled' },
+                check_in_date: { lt: newCheckout },
+                check_out_date: { gt: currentCheckout },
+            }
+        }
+    });
+
+    if (conflicts.length > 0) {
+        throw new ValidationError('Rooms are not available for the extended dates');
+    }
+
+    // Update checkout date
+    const updatedReservation = await prisma.reservation.update({
+        where: { id: reservation.id },
+        data: {
+            check_out_date: newCheckout
+        }
+    });
+
+    return updatedReservation;
+};
+
+const addOptionalCharge = async (reservationId, chargeAmount, description) => {
+    if (!chargeAmount || chargeAmount <= 0) {
+        throw new ValidationError('Charge amount must be greater than zero');
+    }
+
+    const reservation = await prisma.reservation.findUnique({
+        where: { id: Number(reservationId) },
+        include: { billing: true }
+    });
+
+    if (!reservation) {
+        throw new NotFoundError('Reservation not found');
+    }
+
+    if (reservation.reservation_status === 'Cancelled') {
+        throw new ValidationError('Cannot add charges to a cancelled reservation');
+    }
+
+    // If billing does not exist, create it
+    let billing = reservation.billing;
+
+    if (!billing) {
+        billing = await prisma.billing.create({
+            data: {
+                reservation_id: reservation.id,
+                total_amount: chargeAmount,
+                other_charges: chargeAmount,
+                tax_amount: 0,
+                status: 'Unpaid'
+            }
+        });
+    } else {
+        billing = await prisma.billing.update({
+            where: { id: billing.id },
+            data: {
+                other_charges: billing.other_charges + chargeAmount,
+                total_amount: billing.total_amount + chargeAmount
+            }
+        });
+    }
+
+    return {
+        reservationId: reservation.id,
+        addedCharge: chargeAmount,
+        description,
+        billing
+    };
+};
+
+const getRoomsStatus = async () => {
+    const rooms = await prisma.room.findMany({
+        select: {
+            id: true,
+            room_number: true,
+            status: true,
+            price_per_night: true,
+            roomtype: {
+                select: {
+                    id: true,
+                    type_name: true
+                }
+            },
+            branch: {
+                select: {
+                    id: true,
+                    name: true
+                }
+            }
+        },
+        orderBy: {
+            room_number: 'asc'
+        }
+    });
+
+    return rooms;
+};
+
+
 module.exports = {
     createReservation,
     getReservations,
     checkInReservation,
+    checkOutReservation,
+    updateReservationDates,
+    addOptionalCharge,
+    getRoomsStatus,
 };

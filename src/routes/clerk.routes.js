@@ -324,4 +324,191 @@ router.post(
     clerkController.checkIn
 );
 
+/**
+ * @swagger
+ * /api/clerk/check-out/{id}:
+ *   post:
+ *     summary: Check-out customer and finalize bill
+ *     tags: [Receptionist]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Reservation ID
+ *     responses:
+ *       200:
+ *         description: Check-out successful
+ *       400:
+ *         description: Reservation not checked-in
+ *       404:
+ *         description: Reservation not found
+ *       500:
+ *         description: Server error
+ */
+
+router.post(
+    '/check-out/:id',
+    authenticateRole(['Receptionist']),
+    clerkController.checkOutReservationHandler
+);
+
+/**
+ * @swagger
+ * /api/clerk/reservations/{id}/dates:
+ *   patch:
+ *     summary: Change reservation checkout date
+ *     tags: [Receptionist]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Reservation ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - check_out_date
+ *             properties:
+ *               check_out_date:
+ *                 type: string
+ *                 format: date
+ *                 example: "2026-02-15"
+ *     responses:
+ *       200:
+ *         description: Checkout date updated successfully
+ *       400:
+ *         description: Invalid date or room not available
+ *       404:
+ *         description: Reservation not found
+ *       500:
+ *         description: Server error
+ */
+
+router.patch(
+    '/reservations/:id/dates',
+    authenticateRole(['Receptionist']),
+    clerkController.updateReservationDatesHandler
+);
+
+/**
+ * @swagger
+ * /api/clerk/reservations/{id}/charge:
+ *   post:
+ *     summary: Add optional charge to reservation
+ *     tags: [Receptionist]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Reservation ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amount
+ *             properties:
+ *               amount:
+ *                 type: number
+ *                 example: 1500
+ *               description:
+ *                 type: string
+ *                 example: Laundry service
+ *     responses:
+ *       200:
+ *         description: Optional charge added successfully
+ *       400:
+ *         description: Invalid charge amount
+ *       404:
+ *         description: Reservation not found
+ *       500:
+ *         description: Server error
+ */
+
+router.post(
+    '/reservations/:id/charge',
+    authenticateRole(['Receptionist']),
+    clerkController.addOptionalChargeHandler
+);
+
+/**
+ * @swagger
+ * /api/clerk/rooms/status:
+ *   get:
+ *     summary: View status of all physical rooms
+ *     tags: [Receptionist]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of rooms with status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       room_number:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                         enum: [Available, Occupied, Maintenance]
+ *                       price_per_night:
+ *                         type: number
+ *                       roomtype:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                           type_name:
+ *                             type: string
+ *                       branch:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                           name:
+ *                             type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Server error
+ */
+
+router.get(
+    '/rooms/status',
+    authenticateRole(['Receptionist']),
+    clerkController.getRoomsStatusHandler
+);
+
+
+
+
 module.exports = router;
