@@ -322,6 +322,109 @@ router.post(
  */
 router.post('/users', authenticateRole(['Admin']), adminController.createUser);
 
+/**
+ * @swagger
+ * /api/admin/users:
+ *   get:
+ *     summary: Get list of system users
+ *     description: Retrieve system users with optional filters and pagination, including role and branch info.
+ *     tags: [AdminUsers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of users per page
+ *       - in: query
+ *         name: role_id
+ *         schema:
+ *           type: integer
+ *         description: Filter by role ID
+ *       - in: query
+ *         name: branch_id
+ *         schema:
+ *           type: integer
+ *         description: Filter by branch ID
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by username or email (case-insensitive)
+ *     responses:
+ *       200:
+ *         description: List of users with roles and branches
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                   example: 100
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 limit:
+ *                   type: integer
+ *                   example: 10
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 5
+ *                       username:
+ *                         type: string
+ *                         example: receptionist1
+ *                       email:
+ *                         type: string
+ *                         example: receptionist1@example.com
+ *                       role_id:
+ *                         type: integer
+ *                         example: 2
+ *                       branch_id:
+ *                         type: integer
+ *                         nullable: true
+ *                       role:
+ *                         type: object
+ *                         properties:
+ *                           role_id:
+ *                             type: integer
+ *                             example: 2
+ *                           role_name:
+ *                             type: string
+ *                             example: Receptionist
+ *                       branch:
+ *                         type: object
+ *                         nullable: true
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             example: 1
+ *                           name:
+ *                             type: string
+ *                             example: Main Branch
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/users', authenticateRole(['Admin']), adminController.getUsers);
+
+
 
 
 module.exports = router;

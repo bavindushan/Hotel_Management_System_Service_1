@@ -109,10 +109,43 @@ const createUser = async (req, res) => {
     }
 };
 
+const getUsers = async (req, res) => {
+    try {
+        const { page, limit, role_id, branch_id, search } = req.query;
+
+        // Parse pagination params as integers
+        const pageNumber = parseInt(page) || 1;
+        const limitNumber = parseInt(limit) || 10;
+
+        const data = await adminService.getUsers({
+            page: pageNumber,
+            limit: limitNumber,
+            role_id: role_id ? parseInt(role_id) : undefined,
+            branch_id: branch_id ? parseInt(branch_id) : undefined,
+            search,
+        });
+
+        // Remove password_hash from each user before sending response
+        const usersWithoutPasswords = data.users.map(({ password_hash, ...rest }) => rest);
+
+        res.status(200).json({
+            total: data.total,
+            page: data.page,
+            limit: data.limit,
+            users: usersWithoutPasswords,
+        });
+    } catch (error) {
+        console.error('Error in getUsers:', error);
+        res.status(500).json({ message: error.message || 'Internal Server Error' });
+    }
+};
+
+
 
 module.exports = {
     addRoom,
     updateRoom,
     addRoomType,
     createUser,
+    getUsers,
 };

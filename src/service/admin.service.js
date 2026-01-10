@@ -139,9 +139,58 @@ const createUser = async ({ username, email, password, role_id, branch_id }) => 
     return newUser;
 };
 
+const getUsers = async ({ page = 1, limit = 10, role_id, branch_id, search }) => {
+    const skip = (page - 1) * limit;
+
+    const where = {};
+
+    if (role_id) {
+        where.role_id = role_id;
+    }
+
+    if (branch_id) {
+        where.branch_id = branch_id;
+    }
+
+    if (search) {
+        where.OR = [
+            { username: { contains: search } },  
+            { email: { contains: search } },     
+        ];
+    }
+
+    const total = await prisma.user.count({
+        where,
+    });
+
+    const users = await prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+            role: true,
+            branch: true,
+        },
+        orderBy: {
+            id: 'asc',
+        },
+    });
+
+    return {
+        total,
+        page,
+        limit,
+        users,
+    };
+};
+
+
+
+
 module.exports = {
     createRoom,
     updateRoom,
     createRoomType,
     createUser,
+    getUsers,
 };
