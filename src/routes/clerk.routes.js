@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authenticateRole = require('..//middlewares/auth.middleware');
+const authenticateRole = require('../middlewares/auth.middleware');
 const clerkController = require('../controller/clerk.controller');
 
 /**
@@ -102,8 +102,7 @@ router.post(
  *   get:
  *     summary: Get all reservations with optional filters and pagination
  *     description: Retrieve a paginated list of reservations. Supports filtering by customer name/email, reservation status, and check-in date range.
- *     tags:
- *       - Clerk
+ *     tags: [Clerk]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -278,7 +277,7 @@ router.get(
  *   post:
  *     summary: Check-in customer and assign rooms
  *     description: Validates the reservation and updates the status to checked-in while marking rooms as occupied.
- *     tags: [Receptionist]
+ *     tags: [Clerk]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -329,7 +328,7 @@ router.post(
  * /api/clerk/check-out/{id}:
  *   post:
  *     summary: Check-out customer and finalize bill
- *     tags: [Receptionist]
+ *     tags: [Clerk]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -361,7 +360,7 @@ router.post(
  * /api/clerk/reservations/{id}/dates:
  *   patch:
  *     summary: Change reservation checkout date
- *     tags: [Receptionist]
+ *     tags: [Clerk]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -406,7 +405,7 @@ router.patch(
  * /api/clerk/reservations/{id}/charge:
  *   post:
  *     summary: Add optional charge to reservation
- *     tags: [Receptionist]
+ *     tags: [Clerk]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -453,7 +452,7 @@ router.post(
  * /api/clerk/rooms/status:
  *   get:
  *     summary: View status of all physical rooms
- *     tags: [Receptionist]
+ *     tags: [Clerk]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -507,8 +506,5 @@ router.get(
     authenticateRole(['Receptionist']),
     clerkController.getRoomsStatusHandler
 );
-
-
-
 
 module.exports = router;

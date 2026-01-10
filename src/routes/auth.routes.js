@@ -4,22 +4,56 @@ const router = express.Router();
 const { login } = require('../controller/auth.controller');
 const authenticateRole = require('../middlewares/auth.middleware');
 
-// Public login endpoint
+/**
+ * @swagger
+ * tags:
+ *   - name: Auth
+ *     description: Authentication endpoints
+ */
+
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: User login
+ *     description: Authenticate user and return a JWT token on successful login.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: user1
+ *               password:
+ *                 type: string
+ *                 example: Passw0rd!
+ *     responses:
+ *       200:
+ *         description: Successful login with JWT token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: JWT access token
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *       400:
+ *         description: Missing username or password
+ *       401:
+ *         description: Invalid username or password
+ *       500:
+ *         description: Internal server error
+ */
+
 router.post('/login', login);
-
-// // Protected route only accessible to admins
-// router.get('/admin/dashboard', authenticateRole(['admin']), (req, res) => {
-//     res.json({ message: `Welcome Admin: ${req.user.email}` });
-// });
-
-// // Protected route only accessible to managers
-// router.get('/manager/dashboard', authenticateRole(['manager']), (req, res) => {
-//     res.json({ message: `Welcome Manager: ${req.user.email}` });
-// });
-
-// // Protected route only accessible to receptionists
-// router.get('/reception/checkin', authenticateRole(['receptionist']), (req, res) => {
-//     res.json({ message: `Receptionist area access granted for ${req.user.email}` });
-// });
 
 module.exports = router;

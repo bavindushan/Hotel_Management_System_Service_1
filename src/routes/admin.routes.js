@@ -71,38 +71,7 @@ const adminController = require('../controller/admin.controller');
  *         description: Forbidden - insufficient permissions or invalid token
  *       500:
  *         description: Internal server error
- *
- * components:
- *   schemas:
- *     Room:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 10
- *         room_number:
- *           type: string
- *           example: "101A"
- *         room_type_id:
- *           type: integer
- *           example: 1
- *         branch_id:
- *           type: integer
- *           example: 2
- *         status:
- *           type: string
- *           enum: [Available, Occupied, Maintenance]
- *           example: Available
- *         price_per_night:
- *           type: number
- *           format: float
- *           example: 100.50
  */
-router.post(
-    '/rooms',
-    authenticateRole(['Admin', 'Manager']),
-    adminController.addRoom
-);
 
 /**
  * @swagger
@@ -162,12 +131,6 @@ router.post(
  *         description: Internal server error
  */
 
-router.put(
-    '/rooms/:id',
-    authenticateRole(['Admin', 'Manager']),
-    adminController.updateRoom
-);
-
 /**
  * @swagger
  * /api/admin/room-types:
@@ -225,32 +188,7 @@ router.put(
  *         description: Forbidden - insufficient permissions or invalid token
  *       500:
  *         description: Internal server error
- *
- * components:
- *   schemas:
- *     RoomType:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1
- *         type_name:
- *           type: string
- *           example: Deluxe
- *         description:
- *           type: string
- *           example: A deluxe room with sea view
- *         base_price:
- *           type: number
- *           format: float
- *           example: 200.00
  */
-
-router.post(
-    '/room-types',
-    authenticateRole(['Admin', 'Manager']),
-    adminController.addRoomType
-);
 
 /**
  * @swagger
@@ -320,7 +258,6 @@ router.post(
  *       500:
  *         description: Internal server error
  */
-router.post('/users', authenticateRole(['Admin']), adminController.createUser);
 
 /**
  * @swagger
@@ -328,7 +265,7 @@ router.post('/users', authenticateRole(['Admin']), adminController.createUser);
  *   get:
  *     summary: Get list of system users
  *     description: Retrieve system users with optional filters and pagination, including role and branch info.
- *     tags: [AdminUsers]
+ *     tags: [Admin]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -422,9 +359,11 @@ router.post('/users', authenticateRole(['Admin']), adminController.createUser);
  *       500:
  *         description: Internal server error
  */
+
+router.post('/rooms', authenticateRole(['Admin', 'Manager']), adminController.addRoom);
+router.put('/rooms/:id', authenticateRole(['Admin', 'Manager']), adminController.updateRoom);
+router.post('/room-types', authenticateRole(['Admin', 'Manager']), adminController.addRoomType);
+router.post('/users', authenticateRole(['Admin']), adminController.createUser);
 router.get('/users', authenticateRole(['Admin']), adminController.getUsers);
-
-
-
 
 module.exports = router;
