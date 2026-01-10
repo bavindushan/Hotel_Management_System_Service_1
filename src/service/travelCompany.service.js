@@ -223,7 +223,7 @@ class CustomerService {
             data: reservations
         };
     }
-
+    
     async getOwnBillDetails(companyId) {
         if (!companyId) {
             throw new NotFoundError('Company ID not found in token.');
