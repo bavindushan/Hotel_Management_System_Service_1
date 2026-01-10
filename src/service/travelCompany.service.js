@@ -183,7 +183,7 @@ class CustomerService {
             availableRooms.map(room =>
                 prisma.room.update({
                     where: { id: room.id },
-                    data: { status: 'OCCUPIED' }
+                    data: { status: 'Occupied' }
                 })
             )
         );

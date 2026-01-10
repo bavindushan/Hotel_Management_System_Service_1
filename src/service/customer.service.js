@@ -221,7 +221,7 @@ class CustomerService {
                             select: {
                                 room_number: true,
                                 status: true,
-                                room_type: {
+                                roomtype: {
                                     select: {
                                         type_name: true
                                     }
