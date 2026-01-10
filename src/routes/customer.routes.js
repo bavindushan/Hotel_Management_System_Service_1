@@ -261,5 +261,46 @@ router.post('/reservation/payment-details',authMiddleware,asyncHandler(customerC
  */
 router.get('/billing', authMiddleware, asyncHandler(customerController.getOwnBilling));
 
+/**
+ * @swagger
+ * /customer/profile:
+ *   get:
+ *     summary: Get customer profile
+ *     tags: [Customer]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Customer profile fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 statusCode:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     full_name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     phone:
+ *                       type: string
+ *                     address:
+ *                       type: string
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ */
+router.get('/profile', authMiddleware, asyncHandler(customerController.getCustomerProfile));
+
 
 module.exports = router;

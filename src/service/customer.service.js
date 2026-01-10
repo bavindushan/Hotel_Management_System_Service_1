@@ -335,6 +335,35 @@ class CustomerService {
         };
     }
 
+    async getCustomerProfile(customerId) {
+        if (!customerId) {
+            throw new ValidationError("Customer ID is required");
+        }
+
+        const customer = await prisma.customer.findUnique({
+            where: { id: customerId },
+            select: {
+                id: true,
+                full_name: true,
+                email: true,
+                phone: true,
+                address: true,
+                created_at: true,
+            }
+        });
+
+        if (!customer) {
+            throw new NotFoundError("Customer not found");
+        }
+
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Customer profile fetched successfully.",
+            data: customer,
+        };
+    }
+
 }
 
 module.exports = new CustomerService();

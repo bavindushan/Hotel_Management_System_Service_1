@@ -158,6 +158,18 @@ const getOwnBilling = async (req, res) => {
     res.status(result.statusCode).json(result);
 };
 
+const getCustomerProfile = async (req, res) => {
+    const customerId = req.user.id;
+
+    const result = await CustomerService.getCustomerProfile(customerId);
+
+    res.status(result.statusCode || 200).json({
+        success: result.success || true,
+        statusCode: result.statusCode || 200,
+        message: result.message || 'Customer profile fetched successfully.',
+        data: result.data || {}
+    });
+};
 
 module.exports = {
     signIn,
@@ -168,4 +180,5 @@ module.exports = {
     getMyReservations,
     addReservationPaymentDetails,
     getOwnBilling,
+    getCustomerProfile,
 };
