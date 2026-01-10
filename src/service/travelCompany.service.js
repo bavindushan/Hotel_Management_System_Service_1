@@ -223,7 +223,7 @@ class CustomerService {
             data: reservations
         };
     }
-    
+
     async getOwnBillDetails(companyId) {
         if (!companyId) {
             throw new NotFoundError('Company ID not found in token.');
@@ -311,6 +311,55 @@ class CustomerService {
             message: "Travel company profile updated successfully",
         };
     }
+
+    async cancelReservation(reservationId, companyId) {
+        // Check if blocked booking exists and belongs to the travel company
+        const reservation = await prisma.blockedbooking.findUnique({
+            where: { id: reservationId },
+            include: {
+                blockedbookingrooms: true,
+            },
+        });
+
+        if (!reservation) {
+            throw new NotFoundError('Reservation not found.');
+        }
+
+        if (reservation.company_id !== companyId) {
+            throw new UnauthorizedError(
+                'You do not have permission to cancel this reservation.'
+            );
+        }
+
+        //  Prevent cancelling past reservations
+        if (reservation.end_date && reservation.end_date < new Date()) {
+            throw new BadRequestError(
+                'Cannot cancel a reservation that has already ended.'
+            );
+        }
+
+        // Remove blocked rooms first (FK safety)
+        await prisma.blockedbookingrooms.deleteMany({
+            where: {
+                blocked_booking_id: reservationId,
+            },
+        });
+
+        //  Delete blocked booking (actual cancellation)
+        await prisma.blockedbooking.delete({
+            where: { id: reservationId },
+        });
+
+        return {
+            success: true,
+            statusCode: 200,
+            message: 'Reservation cancelled successfully.',
+            data: {
+                reservationId,
+            },
+        };
+    }
+
 
 
 }

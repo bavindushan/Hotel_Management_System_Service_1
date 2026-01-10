@@ -340,5 +340,42 @@ router.get('/profile', authMiddleware, asyncHandler(travelCompanyController.getP
  */
 router.put('/profile', authMiddleware, asyncHandler(travelCompanyController.updateProfile));
 
+/**
+ * @swagger
+ * /travelCompany/reservations/{id}/cancel:
+ *   patch:
+ *     summary: Cancel a reservation by travel company
+ *     tags: [TravelCompany]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Reservation ID to cancel
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Reservation cancelled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Bad request (e.g., invalid ID or business rule violation)
+ *       401:
+ *         description: Unauthorized (e.g., no permission)
+ *       404:
+ *         description: Reservation not found
+ */
+router.patch('/reservations/:id/cancel', authMiddleware, asyncHandler(travelCompanyController.cancelReservation));
+
+
 module.exports = router;
 

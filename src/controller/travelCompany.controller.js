@@ -125,6 +125,27 @@ const updateProfile = async (req, res, next) => {
     }
 };
 
+const cancelReservation = async (req, res, next) => {
+    try {
+        const reservationId = parseInt(req.params.id);
+        const companyId = req.user.companyId; 
+
+        if (isNaN(reservationId)) {
+            throw new ValidationError('Invalid reservation ID.');
+        }
+
+        const result = await travelCompanyService.cancelReservation(reservationId, companyId);
+
+        res.status(result.statusCode || 200).json({
+            success: result.success,
+            message: result.message,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+
 
 
 module.exports = {
@@ -135,4 +156,5 @@ module.exports = {
     getOwnBillDetails,
     getProfile,
     updateProfile,
+    cancelReservation,
 };
