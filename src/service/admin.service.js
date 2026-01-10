@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const bcrypt = require('bcrypt');
 
 const createRoom = async ({ room_number, room_type_id, branch_id, status, price_per_night }) => {
     // Validate that room_type exists
@@ -91,8 +92,56 @@ const createRoomType = async ({ type_name, description, base_price }) => {
     return newRoomType;
 };
 
+const createUser = async ({ username, email, password, role_id, branch_id }) => {
+    // Check if role exists
+    const role = await prisma.role.findUnique({
+        where: { role_id }
+    });
+    if (!role) {
+        throw new Error('Invalid role_id: Role does not exist');
+    }
+
+    // Optional: Check if branch exists (if provided)
+    if (branch_id) {
+        const branch = await prisma.branch.findUnique({
+            where: { id: branch_id }
+        });
+        if (!branch) {
+            throw new Error('Invalid branch_id: Branch does not exist');
+        }
+    }
+
+    // Check if email or username already taken 
+    const existingUser = await prisma.user.findFirst({
+        where: {
+            OR: [{ email }, { username }]
+        }
+    });
+    if (existingUser) {
+        throw new Error('User with this email or username already exists');
+    }
+
+    // Hash password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Create new user
+    const newUser = await prisma.user.create({
+        data: {
+            username,
+            email,
+            password_hash: hashedPassword,
+            role_id,
+            branch_id: branch_id || null,
+        },
+    });
+
+    return newUser;
+};
+
 module.exports = {
     createRoom,
     updateRoom,
     createRoomType,
+    createUser,
 };

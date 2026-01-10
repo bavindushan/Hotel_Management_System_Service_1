@@ -88,9 +88,31 @@ const addRoomType = async (req, res) => {
     }
 };
 
+const createUser = async (req, res) => {
+    try {
+        const { username, email, password, role_id, branch_id } = req.body;
+
+        // Basic validation
+        if (!username || !email || !password || !role_id) {
+            return res.status(400).json({ message: 'username, email, password, and role_id are required' });
+        }
+
+        const user = await adminService.createUser({ username, email, password, role_id, branch_id });
+
+        // Remove password_hash before sending response
+        const { password_hash, ...userWithoutPassword } = user;
+
+        res.status(201).json(userWithoutPassword);
+    } catch (error) {
+        console.error('Error in createUser:', error);
+        res.status(500).json({ message: error.message || 'Internal Server Error' });
+    }
+};
+
 
 module.exports = {
     addRoom,
     updateRoom,
     addRoomType,
+    createUser,
 };

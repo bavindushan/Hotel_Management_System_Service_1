@@ -252,5 +252,76 @@ router.post(
     adminController.addRoomType
 );
 
+/**
+ * @swagger
+ * /api/admin/users:
+ *   post:
+ *     summary: Create a staff user account
+ *     description: Create staff accounts with username, email, password, role, and optional branch.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *               - role_id
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: receptionist1
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: receptionist@example.com
+ *               password:
+ *                 type: string
+ *                 example: Passw0rd!
+ *               role_id:
+ *                 type: integer
+ *                 example: 2
+ *                 description: Role ID must exist
+ *               branch_id:
+ *                 type: integer
+ *                 example: 1
+ *                 description: Optional branch ID
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 5
+ *                 username:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 role_id:
+ *                   type: integer
+ *                 branch_id:
+ *                   type: integer
+ *                   nullable: true
+ *       400:
+ *         description: Validation error or missing fields
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/users', authenticateRole(['Admin']), adminController.createUser);
+
+
 
 module.exports = router;
