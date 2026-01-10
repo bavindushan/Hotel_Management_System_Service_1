@@ -10,6 +10,37 @@ const createReservation = async (req, res, next) => {
     }
 };
 
+const getReservations = async (req, res, next) => {
+    try {
+        const {
+            customer,
+            status,
+            check_in_start,
+            check_in_end,
+            page,
+            limit,
+        } = req.query;
+
+        const data = await clerkService.getReservations({
+            customer,
+            status,
+            check_in_start,
+            check_in_end,
+            page: page ? parseInt(page) : 1,
+            limit: limit ? parseInt(limit) : 10,
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Reservations fetched successfully',
+            data,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     createReservation,
+    getReservations,
 };
