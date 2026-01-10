@@ -95,7 +95,7 @@ const getOwnBillDetails = async (req, res) => {
 
 const getProfile = async (req, res, next) => {
     try {
-        const companyId = req.user.companyId; 
+        const companyId = req.user.companyId;
         const result = await travelCompanyService.getProfile(companyId);
 
         res.status(result.statusCode || 200).json({
@@ -108,6 +108,24 @@ const getProfile = async (req, res, next) => {
     }
 };
 
+const updateProfile = async (req, res, next) => {
+    try {
+        const companyId = req.user.companyId;
+        const updateData = req.body;
+
+        const result = await travelCompanyService.updateProfile(companyId, updateData);
+
+        res.status(result.statusCode || 200).json({
+            success: result.success,
+            data: result.data,
+            message: result.message || "Profile updated successfully"
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+
 
 module.exports = {
     signUp,
@@ -116,4 +134,5 @@ module.exports = {
     getMyReservations,
     getOwnBillDetails,
     getProfile,
+    updateProfile,
 };

@@ -277,6 +277,41 @@ class CustomerService {
         };
     }
 
+    async updateProfile(companyId, updateData) {
+
+        // if (!isValidEmail(updateData.email)) {
+        //     throw new ValidationError('Invalid email format');
+        // }
+
+        // if (!isValidPhoneNumber(updateData.phone)) {
+        //     throw new ValidationError('Invalid phone number format');
+        // }
+
+        const updatedCompany = await prisma.travelcompany.update({
+            where: { id: companyId },
+            data: updateData,
+            select: {
+                id: true,
+                company_name: true,
+                contact_person: true,
+                email: true,
+                phone: true,
+                discount_rate: true,
+            },
+        });
+
+        if (!updatedCompany) {
+            throw new NotFoundError("Travel company profile not found");
+        }
+
+        return {
+            success: true,
+            statusCode: 200,
+            data: updatedCompany,
+            message: "Travel company profile updated successfully",
+        };
+    }
+
 
 }
 

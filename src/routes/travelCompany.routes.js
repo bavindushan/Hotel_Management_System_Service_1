@@ -285,6 +285,60 @@ router.get('/billing', authMiddleware, asyncHandler(travelCompanyController.getO
  */
 router.get('/profile', authMiddleware, asyncHandler(travelCompanyController.getProfile));
 
+/**
+ * @swagger
+ * /travelCompany/profile:
+ *   put:
+ *     summary: Update travel company profile
+ *     tags: [TravelCompany]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               company_name:
+ *                 type: string
+ *               contact_person:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               discount_rate:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Travel company profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     company_name:
+ *                       type: string
+ *                     contact_person:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     phone:
+ *                       type: string
+ *                     discount_rate:
+ *                       type: number
+ *                 message:
+ *                   type: string
+ */
+router.put('/profile', authMiddleware, asyncHandler(travelCompanyController.updateProfile));
 
 module.exports = router;
 
