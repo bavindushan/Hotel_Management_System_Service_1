@@ -247,6 +247,44 @@ router.get('/reservations/my',authMiddleware,asyncHandler(travelCompanyControlle
  */
 router.get('/billing', authMiddleware, asyncHandler(travelCompanyController.getOwnBillDetails));
 
+/**
+ * @swagger
+ * /travelCompany/profile:
+ *   get:
+ *     summary: Get travel company profile
+ *     tags: [TravelCompany]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Travel company profile fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     company_name:
+ *                       type: string
+ *                     contact_person:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     phone:
+ *                       type: string
+ *                     discount_rate:
+ *                       type: number
+ *                 message:
+ *                   type: string
+ */
+router.get('/profile', authMiddleware, asyncHandler(travelCompanyController.getProfile));
+
 
 module.exports = router;
 

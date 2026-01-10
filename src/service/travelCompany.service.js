@@ -252,6 +252,31 @@ class CustomerService {
         };
     }
 
+    async getProfile(companyId) {
+        const company = await prisma.travelcompany.findUnique({
+            where: { id: companyId },
+            select: {
+                id: true,
+                company_name: true,
+                contact_person: true,
+                email: true,
+                phone: true,
+                discount_rate: true,
+            },
+        });
+
+        if (!company) {
+            throw new NotFoundError("Travel company profile not found");
+        }
+
+        return {
+            success: true,
+            statusCode: 200,
+            data: company,
+            message: "Travel company profile fetched successfully",
+        };
+    }
+
 
 }
 

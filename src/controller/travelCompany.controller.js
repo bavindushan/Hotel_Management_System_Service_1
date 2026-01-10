@@ -93,6 +93,21 @@ const getOwnBillDetails = async (req, res) => {
     res.status(result.statusCode).json(result);
 };
 
+const getProfile = async (req, res, next) => {
+    try {
+        const companyId = req.user.companyId; 
+        const result = await travelCompanyService.getProfile(companyId);
+
+        res.status(result.statusCode || 200).json({
+            success: result.success,
+            data: result.data,
+            message: result.message || "Profile fetched successfully"
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
 
 module.exports = {
     signUp,
@@ -100,4 +115,5 @@ module.exports = {
     createReservation,
     getMyReservations,
     getOwnBillDetails,
+    getProfile,
 };
