@@ -219,6 +219,24 @@ const getAvailableRooms = async (req, res, next) => {
     }
 };
 
+const getReservationInvoice = async (req, res, next) => {
+    try {
+        const reservationId = parseInt(req.params.id);
+        if (isNaN(reservationId)) {
+            return res.status(400).json({ success: false, message: "Invalid reservation ID" });
+        }
+
+        const result = await CustomerService.getReservationInvoice(reservationId);
+
+        res.status(result.statusCode || 200).json({
+            success: result.success || true,
+            data: result.data || null,
+            message: result.message || 'Invoice fetched successfully'
+        });
+    } catch (err) {
+        next(err);
+    }
+};
 
 
 module.exports = {
@@ -233,5 +251,5 @@ module.exports = {
     getCustomerProfile,
     updateProfile,
     getAvailableRooms,
-    
+    getReservationInvoice,
 };

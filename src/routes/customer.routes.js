@@ -393,5 +393,54 @@ router.put('/profile', authMiddleware, asyncHandler(customerController.updatePro
  */
 router.get('/rooms/availability', authMiddleware, asyncHandler(customerController.getAvailableRooms));
 
+/**
+ * @swagger
+ * /customer/reservations/{id}/invoice:
+ *   get:
+ *     summary: Get invoice details for a reservation
+ *     tags: [Customer]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Reservation ID to fetch invoice for
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Invoice details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     reservationId:
+ *                       type: integer
+ *                     billing:
+ *                       type: object
+ *                       properties:
+ *                         total_amount:
+ *                           type: number
+ *                         tax_amount:
+ *                           type: number
+ *                         other_charges:
+ *                           type: number
+ *                         billing_date:
+ *                           type: string
+ *                           format: date
+ *                         status:
+ *                           type: string
+ *       404:
+ *         description: Invoice not found
+ */
+router.get('/reservations/:id/invoice', authMiddleware, asyncHandler(customerController.getReservationInvoice));
+
 
 module.exports = router;

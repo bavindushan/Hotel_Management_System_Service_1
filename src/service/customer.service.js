@@ -455,6 +455,38 @@ class CustomerService {
         }));
     }
 
+    async getReservationInvoice(reservationId) {
+        const invoice = await prisma.billing.findUnique({
+            where: { reservation_id: reservationId },
+            select: {
+                total_amount: true,
+                tax_amount: true,
+                other_charges: true,
+                billing_date: true,
+                status: true,
+                reservation_id: true,
+            }
+        });
+
+        if (!invoice) {
+            return {
+                success: false,
+                statusCode: 404,
+                message: `Invoice not found for reservation ID ${reservationId}`,
+            };
+        }
+
+        return {
+            success: true,
+            statusCode: 200,
+            data: {
+                reservationId,
+                billing: invoice
+            }
+        };
+    }
+
+
 
 }
 
