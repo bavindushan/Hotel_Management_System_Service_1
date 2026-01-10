@@ -98,11 +98,75 @@ const adminRoomsController = require('../controller/admin.controller');
  *           format: float
  *           example: 100.50
  */
-
 router.post(
-    '/',
-    authenticateRole(['admin', 'manager']),
+    '/rooms',
+    authenticateRole(['Admin', 'Manager']),
     adminRoomsController.addRoom
 );
+
+/**
+ * @swagger
+ * /api/admin/rooms/{id}:
+ *   put:
+ *     summary: Update room details or status
+ *     description: Update fields such as status, price_per_night, room number, room_type_id, or branch_id for the specified room.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Room ID to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               room_number:
+ *                 type: string
+ *                 example: "102B"
+ *               room_type_id:
+ *                 type: integer
+ *                 example: 2
+ *               branch_id:
+ *                 type: integer
+ *                 example: 1
+ *               status:
+ *                 type: string
+ *                 enum: [Available, Occupied, Maintenance]
+ *               price_per_night:
+ *                 type: number
+ *                 format: float
+ *                 example: 120.00
+ *     responses:
+ *       200:
+ *         description: Room updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Room'
+ *       400:
+ *         description: Invalid input or no fields to update
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Room not found
+ *       500:
+ *         description: Internal server error
+ */
+
+router.put(
+    '/rooms/:id',
+    authenticateRole(['Admin', 'Manager']),
+    adminRoomsController.updateRoom
+);
+
 
 module.exports = router;

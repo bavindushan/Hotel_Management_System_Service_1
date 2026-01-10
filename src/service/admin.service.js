@@ -35,6 +35,41 @@ const createRoom = async ({ room_number, room_type_id, branch_id, status, price_
     return newRoom;
 };
 
+const updateRoom = async (id, data) => {
+    // Check if room exists
+    const room = await prisma.room.findUnique({ where: { id } });
+    if (!room) {
+        throw new Error('Room not found');
+    }
+
+    // If room_type_id or branch_id are to be updated, validate they exist
+    if (data.room_type_id) {
+        const roomType = await prisma.roomtype.findUnique({ where: { id: data.room_type_id } });
+        if (!roomType) {
+            throw new Error('Invalid room_type_id: Room type does not exist');
+        }
+    }
+
+    if (data.branch_id) {
+        const branch = await prisma.branch.findUnique({ where: { id: data.branch_id } });
+        if (!branch) {
+            throw new Error('Invalid branch_id: Branch does not exist');
+        }
+    }
+
+    // Update the room
+    const updatedRoom = await prisma.room.update({
+        where: { id },
+        data: {
+            ...data,
+            price_per_night: data.price_per_night !== undefined ? parseFloat(data.price_per_night) : undefined,
+        },
+    });
+
+    return updatedRoom;
+};
+
 module.exports = {
     createRoom,
+    updateRoom,
 };
