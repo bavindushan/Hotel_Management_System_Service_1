@@ -24,7 +24,7 @@ const authenticateRole = require('../middlewares/auth.middleware');
  *         schema:
  *           type: string
  *           format: date
- *         description: Date for occupancy calculation (default: today)
+ *         description: 'Date for occupancy calculation (default: today)'
  *       - in: query
  *         name: branch_id
  *         schema:
